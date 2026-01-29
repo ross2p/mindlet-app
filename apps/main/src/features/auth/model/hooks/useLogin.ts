@@ -1,6 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
 import { login } from "../../api/auth";
-import { LoginDto } from "@ross2p/types";
+import { type LoginDto } from "@ross2p/types";
 import { useToast } from "@/shared";
 
 export const useLogin = () => {

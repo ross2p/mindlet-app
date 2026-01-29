@@ -1,7 +1,7 @@
 'use client';
 
 import { joiResolver } from "@hookform/resolvers/joi";
-import { CreateUserDto, createUserSchema } from "@ross2p/types";
+import { type CreateUserDto, createUserSchema } from "@ross2p/types";
 import { useForm } from "react-hook-form";
 import { useRegistration } from "../model/hooks/useRegistration";
 
