@@ -1,19 +1,5 @@
-import axios from "axios";
+import { getApiClient } from "../configs/api-client";
 
-type ClientConfig = {
-  baseUrl: string;
-};
-
-const getClient = ({ baseUrl }: ClientConfig) => {
-  const client = axios.create({
-    baseURL: baseUrl,
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
-  return client;
-};
-
-const apiV1Client = getClient({ baseUrl: "https://api.example.com/api/v1" });
+const apiV1Client = getApiClient({ baseUrl: "https://api.example.com/api/v1" });
 
 export { apiV1Client };

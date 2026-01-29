@@ -6,19 +6,19 @@ import {
   type UserTokensDto,
 } from "@ross2p/types";
 
-export const login = async (login: LoginDto): Promise<UserTokensDto> => {
+export const login = async (login: LoginDto): Promise<GlobalResponse<UserTokensDto>> => {
   const response = await apiV1Client.post<GlobalResponse<UserTokensDto>>(
     "/auth/login",
     login,
   );
-  return response.data.data;
+  return response.data;
 };
 
 
-export const register = async (register: CreateUserDto): Promise<UserTokensDto> => {
+export const register = async (register: CreateUserDto): Promise<GlobalResponse<UserTokensDto>> => {
   const response = await apiV1Client.post<GlobalResponse<UserTokensDto>>(
     "/auth/register",
     register,
   );
-  return response.data.data;
+  return response.data;
 };
