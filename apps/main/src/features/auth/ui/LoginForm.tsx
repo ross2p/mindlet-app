@@ -1,13 +1,13 @@
 'use client';
 
 import { joiResolver } from "@hookform/resolvers/joi";
-import {type LoginDto, loginSchema} from "@ross2p/types";
+import { type LoginDto } from "@ross2p/types";
 import { useForm, Controller } from "react-hook-form";
 import { useLogin } from "../model/hooks/useLogin";
 import { Input, Button } from "@/shared";
+import { loginSchema } from "@ross2p/types/dist/schemas/auth/login.schema";
 
 export const LoginForm = () => {
-
     const {mutate: login, isPending} = useLogin()
 
     const {handleSubmit, control, formState: {errors}} = useForm<LoginDto>({
@@ -28,7 +28,6 @@ export const LoginForm = () => {
                 {...field}
                 label="Email"
                 type="email"
-                fullWidth
                 error={!!errors.email}
                 helperText={errors.email?.message}
                 disabled={isPending}
@@ -43,7 +42,6 @@ export const LoginForm = () => {
                 {...field}
                 label="Password"
                 type="password"
-                fullWidth
                 error={!!errors.password}
                 helperText={errors.password?.message}
                 disabled={isPending}
@@ -52,8 +50,7 @@ export const LoginForm = () => {
         />
         <Button 
             type="submit" 
-            variant="contained" 
-            fullWidth
+            size="lg"
             disabled={isPending}
         >
             {isPending ? 'Loading... ' : 'Login'}

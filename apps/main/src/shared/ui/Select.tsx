@@ -1,10 +1,10 @@
 "use client"
 
 import { cva, type VariantProps } from "class-variance-authority"
-import { forwardRef, type InputHTMLAttributes, useState, useId } from "react"
+import { forwardRef, type SelectHTMLAttributes, useState, useId, type ReactNode } from "react"
 import { cn } from "@/shared/utils"
 
-const inputContainerVariants = cva(
+const selectContainerVariants = cva(
   "relative w-full group",
   {
     variants: {
@@ -20,12 +20,11 @@ const inputContainerVariants = cva(
   }
 )
 
-const inputVariants = cva(
+const selectVariants = cva(
   [
     "peer w-full bg-transparent text-foreground transition-all duration-200 ease-out",
-    "outline-none border-0",
+    "outline-none appearance-none cursor-pointer",
     "disabled:cursor-not-allowed disabled:opacity-60",
-    "placeholder-transparent",
   ].join(" "),
   {
     variants: {
@@ -33,25 +32,25 @@ const inputVariants = cva(
         default: [
           "border-b-2 border-border",
           "focus:border-primary",
-          "px-0 pt-6 pb-2",
+          "px-0 pt-6 pb-2 pr-8",
         ].join(" "),
         filled: [
           "bg-muted/50 rounded-t-lg border-b-2 border-border",
           "hover:bg-muted/80",
           "focus:border-primary focus:bg-muted/60",
-          "px-3 pt-6 pb-2",
+          "px-3 pt-6 pb-2 pr-10",
         ].join(" "),
         outlined: [
           "border-2 border-border rounded-lg bg-transparent",
           "hover:border-foreground/50",
           "focus:border-primary focus:border-2",
-          "px-3.5 pt-4 pb-2",
+          "px-3.5 pt-4 pb-2 pr-10",
         ].join(" "),
       },
       size: {
-        default: "text-base",
-        sm: "text-sm",
-        lg: "text-lg",
+        default: "text-base h-14",
+        sm: "text-sm h-12",
+        lg: "text-lg h-16",
       },
       isError: {
         true: "",
@@ -87,7 +86,6 @@ const labelVariants = cva(
     "absolute left-0 text-muted-foreground pointer-events-none",
     "transition-all duration-200 ease-out origin-left",
     "peer-focus:text-primary peer-focus:scale-75",
-    "peer-[:not(:placeholder-shown)]:scale-75",
   ].join(" "),
   {
     variants: {
@@ -95,26 +93,45 @@ const labelVariants = cva(
         default: [
           "top-1/2 -translate-y-1/2 px-0",
           "peer-focus:-translate-y-[140%]",
-          "peer-[:not(:placeholder-shown)]:-translate-y-[140%]",
         ].join(" "),
         filled: [
           "top-1/2 -translate-y-1/2 px-3",
           "peer-focus:-translate-y-[85%]",
-          "peer-[:not(:placeholder-shown)]:-translate-y-[85%]",
         ].join(" "),
         outlined: [
           "top-1/2 -translate-y-1/2 px-1 mx-2.5",
           "peer-focus:-translate-y-[160%] peer-focus:bg-background peer-focus:px-1",
-          "peer-[:not(:placeholder-shown)]:-translate-y-[160%] peer-[:not(:placeholder-shown)]:bg-background peer-[:not(:placeholder-shown)]:px-1",
         ].join(" "),
+      },
+      hasValue: {
+        true: "",
+        false: "",
       },
       isError: {
         true: "text-destructive peer-focus:text-destructive",
         false: "",
       },
     },
+    compoundVariants: [
+      {
+        variant: "default",
+        hasValue: true,
+        className: "scale-75 -translate-y-[140%]",
+      },
+      {
+        variant: "filled",
+        hasValue: true,
+        className: "scale-75 -translate-y-[85%]",
+      },
+      {
+        variant: "outlined",
+        hasValue: true,
+        className: "scale-75 -translate-y-[160%] bg-background px-1",
+      },
+    ],
     defaultVariants: {
       variant: "outlined",
+      hasValue: false,
       isError: false,
     },
   }
@@ -135,17 +152,43 @@ const helperTextVariants = cva(
   }
 )
 
-export interface InputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'size'> {
+const chevronVariants = cva(
+  [
+    "absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none",
+    "transition-transform duration-200 text-muted-foreground",
+    "peer-focus:text-primary peer-focus:rotate-180",
+  ].join(" "),
+  {
+    variants: {
+      isError: {
+        true: "text-destructive",
+        false: "",
+      },
+    },
+    defaultVariants: {
+      isError: false,
+    },
+  }
+)
+
+export interface SelectOption {
+  value: string
+  label: string
+  disabled?: boolean
+}
+
+export interface SelectProps extends Omit<SelectHTMLAttributes<HTMLSelectElement>, 'size'> {
   label?: string
   helperText?: string
   error?: boolean
   variant?: "default" | "filled" | "outlined"
-  size?: VariantProps<typeof inputVariants>['size']
-  startAdornment?: React.ReactNode
-  endAdornment?: React.ReactNode
+  size?: VariantProps<typeof selectVariants>['size']
+  options: SelectOption[]
+  placeholder?: string
+  startAdornment?: ReactNode
 }
 
-export const Input = forwardRef<HTMLInputElement, InputProps>(
+export const Select = forwardRef<HTMLSelectElement, SelectProps>(
   ({ 
     className, 
     label, 
@@ -153,72 +196,87 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     error = false, 
     variant = "outlined", 
     size = "default",
+    options,
+    placeholder,
     startAdornment,
-    endAdornment,
+    value,
+    defaultValue,
     id: propId,
     ...props 
   }, ref) => {
     const generatedId = useId()
     const id = propId || generatedId
-    const [isFocused, setIsFocused] = useState(false)
+    const [internalValue, setInternalValue] = useState(defaultValue || "")
+    const hasValue = Boolean(value !== undefined ? value : internalValue)
     
     return (
       <div className="w-full">
-        <div className={cn(inputContainerVariants({ variant }), error && "animate-shake")}>
+        <div className={cn(selectContainerVariants({ variant }), error && "animate-shake")}>
           {startAdornment && (
-            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground z-10">
               {startAdornment}
             </div>
           )}
           
-          <input
+          <select
             ref={ref}
             id={id}
+            value={value}
+            defaultValue={defaultValue}
             className={cn(
-              inputVariants({ variant, size, isError: error }),
+              selectVariants({ variant, size, isError: error }),
               startAdornment && "pl-10",
-              endAdornment && "pr-10",
               className
             )}
-            placeholder=" "
             aria-invalid={error}
             aria-describedby={helperText ? `${id}-helper` : undefined}
-            onFocus={(e) => {
-              setIsFocused(true)
-              props.onFocus?.(e)
-            }}
-            onBlur={(e) => {
-              setIsFocused(false)
-              props.onBlur?.(e)
+            onChange={(e) => {
+              setInternalValue(e.target.value)
+              props.onChange?.(e)
             }}
             {...props}
-          />
+          >
+            {placeholder && (
+              <option value="" disabled hidden>
+                {placeholder}
+              </option>
+            )}
+            {options.map((option) => (
+              <option 
+                key={option.value} 
+                value={option.value}
+                disabled={option.disabled}
+              >
+                {option.label}
+              </option>
+            ))}
+          </select>
           
           {label && (
             <label 
               htmlFor={id}
-              className={cn(labelVariants({ variant, isError: error }))}
+              className={cn(labelVariants({ variant, hasValue, isError: error }))}
             >
               {label}
             </label>
           )}
           
-          {endAdornment && (
-            <div className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-              {endAdornment}
-            </div>
-          )}
-          
-          {/* Animated underline for default variant */}
-          {variant === "default" && (
-            <div 
-              className={cn(
-                "absolute bottom-0 left-1/2 h-0.5 bg-primary transition-all duration-300 ease-out -translate-x-1/2",
-                isFocused ? "w-full" : "w-0",
-                error && "bg-destructive"
-              )}
+          {/* Chevron icon */}
+          <svg 
+            className={cn(chevronVariants({ isError: error }))}
+            width="20" 
+            height="20" 
+            viewBox="0 0 20 20" 
+            fill="none"
+          >
+            <path 
+              d="M5 7.5L10 12.5L15 7.5" 
+              stroke="currentColor" 
+              strokeWidth="1.5" 
+              strokeLinecap="round" 
+              strokeLinejoin="round"
             />
-          )}
+          </svg>
         </div>
         
         {helperText && (
@@ -234,4 +292,4 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
   }
 )
 
-Input.displayName = "Input"
+Select.displayName = "Select"

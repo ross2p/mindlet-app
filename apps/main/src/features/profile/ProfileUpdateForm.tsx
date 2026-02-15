@@ -2,24 +2,23 @@
 
 import { joiResolver } from "@hookform/resolvers/joi";
 import { Controller, useForm } from "react-hook-form";
-import { useRegistration } from "../model/hooks/useRegistration";
 import { Button, Input } from "@/shared";
-import { CreateUserFormDto } from "../model/types/create-user-form.type";
-import { createUserFormSchema } from "../model/schemas/create-user-form.schema";
+import { UpdateUserDto, updateUserSchema } from "@ross2p/types";
+import { useUpdateMe } from "@/entities/user";
 
-export const RegistrationForm = () => {
-  const { mutate: register, isPending } = useRegistration();
+export const ProfileUpdateForm = () => {
+  const { mutate: updateMe, isPending } = useUpdateMe();
 
   const {
     handleSubmit,
     control,
     formState: { errors },
-  } = useForm<CreateUserFormDto>({
-    resolver: joiResolver(createUserFormSchema),
+  } = useForm<UpdateUserDto>({
+    resolver: joiResolver(updateUserSchema),
   });
 
-  const onSubmit = (data: CreateUserFormDto) => {
-    register(data);
+  const onSubmit = (data: UpdateUserDto) => {
+    updateMe(data);
   };
 
   return (
@@ -80,21 +79,6 @@ export const RegistrationForm = () => {
             type="password"
             error={!!errors.password}
             helperText={errors.password?.message}
-            disabled={isPending}
-          />
-        )}
-      />
-      <Controller
-        name="confirmPassword"
-        control={control}
-        render={({ field }) => (
-          <Input
-            {...field}
-            value={field.value ?? ""}
-            label="Confirm Password"
-            type="password"
-            error={!!errors.confirmPassword}
-            helperText={errors.confirmPassword?.message}
             disabled={isPending}
           />
         )}

@@ -1,10 +1,10 @@
 "use client"
 
 import { cva, type VariantProps } from "class-variance-authority"
-import { forwardRef, type InputHTMLAttributes, useState, useId } from "react"
+import { forwardRef, type TextareaHTMLAttributes, useState, useId, useEffect, useRef } from "react"
 import { cn } from "@/shared/utils"
 
-const inputContainerVariants = cva(
+const textFieldContainerVariants = cva(
   "relative w-full group",
   {
     variants: {
@@ -20,10 +20,10 @@ const inputContainerVariants = cva(
   }
 )
 
-const inputVariants = cva(
+const textFieldVariants = cva(
   [
     "peer w-full bg-transparent text-foreground transition-all duration-200 ease-out",
-    "outline-none border-0",
+    "outline-none resize-none",
     "disabled:cursor-not-allowed disabled:opacity-60",
     "placeholder-transparent",
   ].join(" "),
@@ -49,9 +49,9 @@ const inputVariants = cva(
         ].join(" "),
       },
       size: {
-        default: "text-base",
-        sm: "text-sm",
-        lg: "text-lg",
+        default: "text-base min-h-[100px]",
+        sm: "text-sm min-h-[80px]",
+        lg: "text-lg min-h-[120px]",
       },
       isError: {
         true: "",
@@ -93,19 +93,19 @@ const labelVariants = cva(
     variants: {
       variant: {
         default: [
-          "top-1/2 -translate-y-1/2 px-0",
-          "peer-focus:-translate-y-[140%]",
-          "peer-[:not(:placeholder-shown)]:-translate-y-[140%]",
+          "top-4 px-0",
+          "peer-focus:-translate-y-[100%]",
+          "peer-[:not(:placeholder-shown)]:-translate-y-[100%]",
         ].join(" "),
         filled: [
-          "top-1/2 -translate-y-1/2 px-3",
-          "peer-focus:-translate-y-[85%]",
-          "peer-[:not(:placeholder-shown)]:-translate-y-[85%]",
+          "top-4 px-3",
+          "peer-focus:-translate-y-[60%]",
+          "peer-[:not(:placeholder-shown)]:-translate-y-[60%]",
         ].join(" "),
         outlined: [
-          "top-1/2 -translate-y-1/2 px-1 mx-2.5",
-          "peer-focus:-translate-y-[160%] peer-focus:bg-background peer-focus:px-1",
-          "peer-[:not(:placeholder-shown)]:-translate-y-[160%] peer-[:not(:placeholder-shown)]:bg-background peer-[:not(:placeholder-shown)]:px-1",
+          "top-4 px-1 mx-2.5",
+          "peer-focus:-translate-y-[110%] peer-focus:bg-background peer-focus:px-1",
+          "peer-[:not(:placeholder-shown)]:-translate-y-[110%] peer-[:not(:placeholder-shown)]:bg-background peer-[:not(:placeholder-shown)]:px-1",
         ].join(" "),
       },
       isError: {
@@ -121,7 +121,7 @@ const labelVariants = cva(
 )
 
 const helperTextVariants = cva(
-  "text-xs mt-1.5 px-3.5 transition-all duration-200 animate-fade-in",
+  "text-xs mt-1.5 px-3.5 transition-all duration-200 animate-fade-in flex justify-between",
   {
     variants: {
       variant: {
@@ -135,17 +135,18 @@ const helperTextVariants = cva(
   }
 )
 
-export interface InputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'size'> {
+export interface TextFieldProps extends Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, 'size'> {
   label?: string
   helperText?: string
   error?: boolean
   variant?: "default" | "filled" | "outlined"
-  size?: VariantProps<typeof inputVariants>['size']
-  startAdornment?: React.ReactNode
-  endAdornment?: React.ReactNode
+  size?: VariantProps<typeof textFieldVariants>['size']
+  autoResize?: boolean
+  maxLength?: number
+  showCount?: boolean
 }
 
-export const Input = forwardRef<HTMLInputElement, InputProps>(
+export const TextField = forwardRef<HTMLTextAreaElement, TextFieldProps>(
   ({ 
     className, 
     label, 
@@ -153,44 +154,65 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     error = false, 
     variant = "outlined", 
     size = "default",
-    startAdornment,
-    endAdornment,
+    autoResize = false,
+    maxLength,
+    showCount = false,
+    value,
+    defaultValue,
     id: propId,
+    onChange,
     ...props 
   }, ref) => {
     const generatedId = useId()
     const id = propId || generatedId
-    const [isFocused, setIsFocused] = useState(false)
+    const [charCount, setCharCount] = useState(0)
+    const textareaRef = useRef<HTMLTextAreaElement | null>(null)
+    
+    // Handle auto-resize
+    useEffect(() => {
+      if (autoResize && textareaRef.current) {
+        textareaRef.current.style.height = 'auto'
+        textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`
+      }
+    }, [autoResize, value])
+
+    const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+      setCharCount(e.target.value.length)
+      
+      if (autoResize && textareaRef.current) {
+        textareaRef.current.style.height = 'auto'
+        textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`
+      }
+      
+      onChange?.(e)
+    }
+
+    const setRefs = (element: HTMLTextAreaElement | null) => {
+      textareaRef.current = element
+      if (typeof ref === 'function') {
+        ref(element)
+      } else if (ref) {
+        ref.current = element
+      }
+    }
     
     return (
       <div className="w-full">
-        <div className={cn(inputContainerVariants({ variant }), error && "animate-shake")}>
-          {startAdornment && (
-            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-              {startAdornment}
-            </div>
-          )}
-          
-          <input
-            ref={ref}
+        <div className={cn(textFieldContainerVariants({ variant }), error && "animate-shake")}>
+          <textarea
+            ref={setRefs}
             id={id}
+            value={value}
+            defaultValue={defaultValue}
+            maxLength={maxLength}
             className={cn(
-              inputVariants({ variant, size, isError: error }),
-              startAdornment && "pl-10",
-              endAdornment && "pr-10",
+              textFieldVariants({ variant, size, isError: error }),
               className
             )}
             placeholder=" "
             aria-invalid={error}
             aria-describedby={helperText ? `${id}-helper` : undefined}
-            onFocus={(e) => {
-              setIsFocused(true)
-              props.onFocus?.(e)
-            }}
-            onBlur={(e) => {
-              setIsFocused(false)
-              props.onBlur?.(e)
-            }}
+            onChange={handleChange}
             {...props}
           />
           
@@ -202,36 +224,21 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
               {label}
             </label>
           )}
-          
-          {endAdornment && (
-            <div className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-              {endAdornment}
-            </div>
-          )}
-          
-          {/* Animated underline for default variant */}
-          {variant === "default" && (
-            <div 
-              className={cn(
-                "absolute bottom-0 left-1/2 h-0.5 bg-primary transition-all duration-300 ease-out -translate-x-1/2",
-                isFocused ? "w-full" : "w-0",
-                error && "bg-destructive"
-              )}
-            />
-          )}
         </div>
         
-        {helperText && (
-          <p 
-            id={`${id}-helper`}
-            className={cn(helperTextVariants({ variant: error ? "error" : "default" }))}
-          >
-            {helperText}
-          </p>
+        {(helperText || showCount) && (
+          <div className={cn(helperTextVariants({ variant: error ? "error" : "default" }))}>
+            <span id={`${id}-helper`}>{helperText}</span>
+            {showCount && (
+              <span className="text-muted-foreground">
+                {charCount}{maxLength ? `/${maxLength}` : ''}
+              </span>
+            )}
+          </div>
         )}
       </div>
     )
   }
 )
 
-Input.displayName = "Input"
+TextField.displayName = "TextField"
