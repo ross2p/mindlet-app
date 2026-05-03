@@ -54,6 +54,16 @@ Use `compose.yml` / nginx for a single entrypoint, or hit ports directly with th
 
 Published from [mindlet-shared](https://github.com/ross2p/mindlet-shared).
 
+From `libs/shared` after configuring auth (PAT with `write:packages`):
+
+```bash
+# ~/.npmrc or project .npmrc
+echo '@ross2p:registry=https://npm.pkg.github.com' >> .npmrc
+echo '//npm.pkg.github.com/:_authToken=${NPM_TOKEN}' >> .npmrc
+export NPM_TOKEN=ghp_xxx
+npm publish
+```
+
 In consuming apps, `.npmrc`:
 
 ```
