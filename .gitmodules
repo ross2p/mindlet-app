@@ -1,3 +1,21 @@
 [submodule "libs/types"]
 	path = libs/types
 	url = https://github.com/ross2p/mindlet-types.git
+[submodule "apps/dashboard"]
+	path = apps/dashboard
+	url = https://github.com/ross2p/mindlet-dashboard.git
+[submodule "apps/auth"]
+	path = apps/auth
+	url = https://github.com/ross2p/mindlet-auth.git
+[submodule "apps/profile"]
+	path = apps/profile
+	url = https://github.com/ross2p/mindlet-profile.git
+[submodule "apps/study"]
+	path = apps/study
+	url = https://github.com/ross2p/mindlet-study.git
+[submodule "apps/decks"]
+	path = apps/decks
+	url = https://github.com/ross2p/mindlet-decks.git
+[submodule "libs/shared"]
+	path = libs/shared
+	url = https://github.com/ross2p/mindlet-shared.git

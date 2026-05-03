@@ -1,1 +1,0 @@
-export { ProfileUpdateForm } from "./ProfileUpdateForm";

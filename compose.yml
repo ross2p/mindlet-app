@@ -1,0 +1,76 @@
+# Mindlet — local micro-frontends (dev)
+#
+# From repo root:
+#   docker compose up
+#
+# Then open http://localhost/dashboard/, http://localhost/auth/login, etc.
+
+services:
+  dashboard:
+    image: node:20-alpine
+    working_dir: /workspace/apps/dashboard      
+    volumes:
+      - .:/workspace
+    command: sh -c "npm install && npm run dev"
+    expose:
+      - "3001"
+    environment:
+      NEXT_TELEMETRY_DISABLED: "1"
+
+  auth:
+    image: node:20-alpine
+    working_dir: /workspace/apps/auth      
+    volumes:
+      - .:/workspace
+    command: sh -c "npm install && npm run dev"
+    expose:
+      - "3002"
+    environment:
+      NEXT_TELEMETRY_DISABLED: "1"
+
+  profile:
+    image: node:20-alpine
+    working_dir: /workspace/apps/profile      
+    volumes:
+      - .:/workspace
+    command: sh -c "npm install && npm run dev"
+    expose:
+      - "3003"
+    environment:
+      NEXT_TELEMETRY_DISABLED: "1"
+
+  study:
+    image: node:20-alpine
+    working_dir: /workspace/apps/study      
+    volumes:
+      - .:/workspace
+    command: sh -c "npm install && npm run dev"
+    expose:
+      - "3004"
+    environment:
+      NEXT_TELEMETRY_DISABLED: "1"
+
+  decks:
+    image: node:20-alpine
+    working_dir: /workspace/apps/decks      
+    volumes:
+      - .:/workspace
+    command: sh -c "npm install && npm run dev"
+    expose:
+      - "3005"
+    environment:
+      NEXT_TELEMETRY_DISABLED: "1"
+
+  nginx:
+    image: nginx:1.27-alpine
+    ports:
+      - "8080:80"
+    volumes:
+      - ./infra/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./infra/nginx/proxy.conf:/etc/nginx/proxy.conf:ro
+    depends_on:
+      - dashboard
+      - auth
+      - profile
+      - study
+      - decks
