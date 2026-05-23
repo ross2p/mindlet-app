@@ -1,9 +1,13 @@
-# Mindlet — local micro-frontends
+# Mindlet — full local stack (frontends + API + platform)
 #
-# From repo root:
+# From mindlet-app:
 #   docker compose up --build
 #
-# Then open http://localhost:8080/dashboard/, http://localhost:8080/auth/login, etc.
+# From monorepo root:
+#   docker compose -f mindlet-app/compose.yml up --build
+#
+# Optional shared env (interpolation in included API fragments):
+#   KAFKA_BROKER=kafka:29092
 
 services:
   dashboard:
@@ -96,6 +100,9 @@ services:
   #     - decks
   #   networks:
   #     - app-network
+
+include:
+  - path: ../mindlet-api/compose.stack.yaml
 
 networks:
   app-network:
