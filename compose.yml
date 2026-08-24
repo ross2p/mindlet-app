@@ -1,108 +1,130 @@
-# Mindlet — full local stack (frontends + API + platform)
+# Mindlet — frontend stack (Next.js micro-frontends)
 #
 # From mindlet-app:
-#   docker compose up --build
+#   docker compose build --parallel 1 && docker compose up
 #
-# From monorepo root:
-#   docker compose -f mindlet-app/compose.yml up --build
+# Entrypoint: http://localhost:8080
+# Direct access (host PORT from each apps/*/.env, container always 3000):
+#   dashboard → http://localhost:3001/dashboard/
 #
-# Optional shared env (interpolation in included API fragments):
-#   KAFKA_BROKER=kafka:29092
+# API (optional, run separately in mindlet-api):
+#   cd mindlet-api && npm run docker:up
+#   # or: docker compose -f ../mindlet-api/compose.stack.yaml build --parallel 2 && docker compose -f ../mindlet-api/compose.stack.yaml up -d
 
 services:
   dashboard:
     build:
-      context: .
-      dockerfile: apps/dashboard/Dockerfile
+      context: apps/dashboard
+      dockerfile: Dockerfile
       args:
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:4000}
+        NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://localhost:4000/api/v1}
     hostname: dashboard
+    ports:
+      - "${PORT:-3001}:3000"
     expose:
-      - "3001"
+      - "3000"
     environment:
       NEXT_TELEMETRY_DISABLED: "1"
+    env_file:
+      - apps/dashboard/.env
     networks:
       - app-network
     restart: unless-stopped
 
-  # auth:
-  #   build:
-  #     context: .
-  #     dockerfile: apps/auth/Dockerfile
-  #     args:
-  #       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:4000}
-  #   hostname: auth
-  #   expose:
-  #     - "3002"
-  #   environment:
-  #     NEXT_TELEMETRY_DISABLED: "1"
-  #   networks:
-  #     - app-network
-  #   restart: unless-stopped
+  auth:
+    build:
+      context: apps/auth
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://localhost:4000/api/v1}
+    hostname: auth
+    ports:
+      - "${PORT:-3002}:3000"
+    expose:
+      - "3000"
+    environment:
+      NEXT_TELEMETRY_DISABLED: "1"
+    env_file:
+      - apps/auth/.env
+    networks:
+      - app-network
+    restart: unless-stopped
 
-  # profile:
-  #   build:
-  #     context: .
-  #     dockerfile: apps/profile/Dockerfile
-  #     args:
-  #       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:4000}
-  #   hostname: profile
-  #   expose:
-  #     - "3003"
-  #   environment:
-  #     NEXT_TELEMETRY_DISABLED: "1"
-  #   networks:
-  #     - app-network
-  #   restart: unless-stopped
+  profile:
+    build:
+      context: apps/profile
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://localhost:4000/api/v1}
+    hostname: profile
+    ports:
+      - "${PORT:-3003}:3000"
+    expose:
+      - "3000"
+    environment:
+      NEXT_TELEMETRY_DISABLED: "1"
+    env_file:
+      - apps/profile/.env
+    networks:
+      - app-network
+    restart: unless-stopped
 
-  # study:
-  #   build:
-  #     context: .
-  #     dockerfile: apps/study/Dockerfile
-  #     args:
-  #       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:4000}
-  #   hostname: study
-  #   expose:
-  #     - "3004"
-  #   environment:
-  #     NEXT_TELEMETRY_DISABLED: "1"
-  #   networks:
-  #     - app-network
-  #   restart: unless-stopped
+  study:
+    build:
+      context: apps/study
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://localhost:4000/api/v1}
+    hostname: study
+    ports:
+      - "${PORT:-3004}:3000"
+    expose:
+      - "3000"
+    environment:
+      NEXT_TELEMETRY_DISABLED: "1"
+    env_file:
+      - apps/study/.env
+    networks:
+      - app-network
+    restart: unless-stopped
 
-  # decks:
-  #   build:
-  #     context: .
-  #     dockerfile: apps/decks/Dockerfile
-  #     args:
-  #       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:4000}
-  #   hostname: decks
-  #   expose:
-  #     - "3005"
-  #   environment:
-  #     NEXT_TELEMETRY_DISABLED: "1"
-  #   networks:
-  #     - app-network
-  #   restart: unless-stopped
+  decks:
+    build:
+      context: apps/decks
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://localhost:4000/api/v1}
+    hostname: decks
+    ports:
+      - "${PORT:-3005}:3000"
+    expose:
+      - "3000"
+    environment:
+      NEXT_TELEMETRY_DISABLED: "1"
+    env_file:
+      - apps/decks/.env
+    networks:
+      - app-network
+    restart: unless-stopped
 
-  # nginx:
-  #   image: nginx:1.27-alpine
-  #   ports:
-  #     - "8080:80"
-  #   volumes:
-  #     - ./infra/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-  #     - ./infra/nginx/proxy.conf:/etc/nginx/proxy.conf:ro
-  #   depends_on:
-  #     - dashboard
-  #     - auth
-  #     - profile
-  #     - study
-  #     - decks
-  #   networks:
-  #     - app-network
-
-include:
-  - path: ../mindlet-api/compose.stack.yaml
+  nginx:
+    image: nginx:1.27-alpine
+    ports:
+      - "8080:80"
+    volumes:
+      - ./infra/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./infra/nginx/proxy.conf:/etc/nginx/proxy.conf:ro
+      - ./infra/nginx/logging.conf:/etc/nginx/logging.conf:ro
+      - ./infra/nginx/routing-map.frontend.conf:/etc/nginx/routing-map.frontend.conf:ro
+    depends_on:
+      - dashboard
+      - auth
+      - profile
+      - study
+      - decks
+    networks:
+      - app-network
+    restart: unless-stopped
 
 networks:
   app-network:
