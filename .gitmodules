@@ -6,7 +6,7 @@
 	url = https://github.com/ross2p/mindlet-dashboard.git
 [submodule "apps/auth"]
 	path = apps/auth
-	url = https://github.com/ross2p/mindlet-auth.git
+	url = https://github.com/ross2p/mindlet-app-auth.git
 [submodule "apps/profile"]
 	path = apps/profile
 	url = https://github.com/ross2p/mindlet-profile.git

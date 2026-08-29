@@ -4,7 +4,7 @@ Micro-frontends: **dashboard**, **auth**, **profile**, **study**, **decks** (Nex
 
 ## Layout
 
-- `apps/*` — submodule repos (`mindlet-dashboard`, `mindlet-auth`, …)
+- `apps/*` — submodule repos (`mindlet-dashboard`, `mindlet-app-auth`, …)
 - `libs/shared` — `@ross2p/shared` (GitHub Packages name under scope `ross2p`)
 - `libs/types` — `@ross2p/types` (existing submodule)
 - `infra/nginx` — dev reverse proxy
