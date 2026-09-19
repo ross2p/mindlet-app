@@ -1,0 +1,70 @@
+pid /tmp/nginx.pid;
+error_log /tmp/nginx-error.log warn;
+
+worker_processes auto;
+
+events {
+  worker_connections 1024;
+}
+
+http {
+  access_log /tmp/nginx-access.log;
+
+  include ./routing-map.frontend.conf;
+  include ./proxy.conf;
+
+  upstream mindlet_dashboard { server localhost:3001; }
+  upstream mindlet_auth      { server localhost:3002; }
+  upstream mindlet_profile   { server localhost:3003; }
+  upstream mindlet_study     { server localhost:3004; }
+  upstream mindlet_decks     { server localhost:3005; }
+
+  server {
+    listen 8080 default_server;
+    server_name _;
+
+    absolute_redirect off;
+    port_in_redirect off;
+
+    client_max_body_size 50m;
+
+    location = / {
+      return 302 /dashboard;
+    }
+
+    location = /dashboard {
+      proxy_pass http://mindlet_dashboard/dashboard;
+    }
+    location /dashboard/ {
+      proxy_pass http://mindlet_dashboard/dashboard/;
+    }
+
+    location = /auth {
+      return 302 /auth/login;
+    }
+    location /auth/ {
+      proxy_pass http://mindlet_auth/auth/;
+    }
+
+    location = /profile {
+      proxy_pass http://mindlet_profile/profile;
+    }
+    location /profile/ {
+      proxy_pass http://mindlet_profile/profile/;
+    }
+
+    location = /study {
+      proxy_pass http://mindlet_study/study;
+    }
+    location /study/ {
+      proxy_pass http://mindlet_study/study/;
+    }
+
+    location = /decks {
+      proxy_pass http://mindlet_decks/decks;
+    }
+    location /decks/ {
+      proxy_pass http://mindlet_decks/decks/;
+    }
+  }
+}
